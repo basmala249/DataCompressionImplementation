@@ -1,7 +1,8 @@
+import re
+
 dict_LZW = {}
 dict_decomp = {}
 newCoded = 128
-result = []
 
 def LZWCompression(line):
     global newCoded
@@ -9,7 +10,7 @@ def LZWCompression(line):
     lastFoundValue = -1
     enCodedeSequence = ""
     pointer = 0
-    with open("Output", "a") as OutputFile:
+    with open("Output", "w") as OutputFile:
         #print(line)
         while pointer < len(line):
             enCodedeSequence += line[pointer]
@@ -26,14 +27,12 @@ def LZWCompression(line):
             else:
                 # Write the last found code (sequence) to the output
                 OutputFile.write(f" <{lastFoundValue}> ")
-                result.append(lastFoundValue)
                 # Add the new sequence to the dictionary
                 dict_LZW[newCoded] = enCodedeSequence
                 newCoded += 1
                 enCodedeSequence = ""
         if found :
             OutputFile.write(f" <{lastFoundValue}> ")
-            result.append(lastFoundValue)
 decoded = 128
 
 decoded = 128
@@ -43,20 +42,19 @@ dict_decomp = {}
 def LZWDecompression(indx):
     lastDecompressed = ""
     global decoded
-    with open("RESULT", "a") as OutputFile:
+    with open("RESULT", "w") as OutputFile:
         for x in indx:
-            print(x)
-            if x in dict_decomp:
+            if int(x) in dict_decomp:
                 # Write the decompressed sequence to the output
-                OutputFile.write(dict_decomp[x])
+                OutputFile.write(dict_decomp[int(x)])
 
                 # Update the dictionary with the new sequence
                 if lastDecompressed:
-                    dict_decomp[decoded] = lastDecompressed + dict_decomp[x][0]
+                    dict_decomp[decoded] = lastDecompressed + dict_decomp[int(x)][0]
                     decoded += 1
 
                 # Set the last decompressed sequence
-                lastDecompressed = dict_decomp[x]
+                lastDecompressed = dict_decomp[int(x)]
             else:
                 # Handle the case where `x` is not in the dictionary
                 if lastDecompressed:
@@ -80,7 +78,7 @@ def ReadFromFile(name):
         content = file.read()
         for char in content:
             s += char
-    LZWCompression(s)
+    return s
 
 
 
@@ -96,10 +94,20 @@ def filldeCompression():
     for i in range(1, 128):
         dict_decomp[i] = str(chr(i))
 
+def getTags(name) :
+  numbers = []
+  with open(name , 'r') as file :
+    content = file.read()
+    # This will find all sequences of digits (including multi-digit numbers)
+    numbers = re.findall(r'\d+', content)
+  return numbers
+
 
 # Main execution
 name = input("Enter File Name: ")
 fillDictionary()
 filldeCompression()
-ReadFromFile(name)
-LZWDecompression(result)
+val = ReadFromFile(name)
+LZWCompression(val)
+res = getTags("Tags")
+LZWDecompression(res)
