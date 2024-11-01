@@ -1,56 +1,105 @@
 dict_LZW = {}
+dict_decomp = {}
 newCoded = 128
+result = []
 
 def LZWCompression(line):
     global newCoded
-    lastFoundValue = None
+    global result
+    lastFoundValue = -1
     enCodedeSequence = ""
     pointer = 0
-    result = []
-    with open("output", "a") as Output:
+    with open("Output", "a") as OutputFile:
+        #print(line)
         while pointer < len(line):
             enCodedeSequence += line[pointer]
-            pointer += 1
             found = False
+            #print(enCodedeSequence)
             # Check if the current sequence exists in the dictionary
             for key, value in dict_LZW.items():
-                #print(enCodedeSequence)
                 if value == enCodedeSequence:
-                    #print("Yes")
-                    found = True;
-                    lastFoundValue = key  # Store the last found key (as an integer)
+                    found = True
+                    lastFoundValue = key
                     break
-            if not found:
-                if lastFoundValue is not None:  # Write last found value if it exists
-                    result.append(lastFoundValue)
-
+            if found:
+                pointer += 1
+            else:
+                # Write the last found code (sequence) to the output
+                OutputFile.write(f" <{lastFoundValue}> ")
+                result.append(lastFoundValue)
                 # Add the new sequence to the dictionary
                 dict_LZW[newCoded] = enCodedeSequence
                 newCoded += 1
                 enCodedeSequence = ""
-                pointer -= 1
-        result.append(lastFoundValue)
-        return result
+        if found :
+            OutputFile.write(f" <{lastFoundValue}> ")
+            result.append(lastFoundValue)
+decoded = 128
+
+decoded = 128
+dict_decomp = {}
 
 
-def fillDictionary():
-    for i in range(ord('A'), ord('Z') + 1):
-        dict_LZW[i] = chr(i)
+def LZWDecompression(indx):
+    lastDecompressed = ""
+    global decoded
+    with open("RESULT", "a") as OutputFile:
+        for x in indx:
+            print(x)
+            if x in dict_decomp:
+                # Write the decompressed sequence to the output
+                OutputFile.write(dict_decomp[x])
+
+                # Update the dictionary with the new sequence
+                if lastDecompressed:
+                    dict_decomp[decoded] = lastDecompressed + dict_decomp[x][0]
+                    decoded += 1
+
+                # Set the last decompressed sequence
+                lastDecompressed = dict_decomp[x]
+            else:
+                # Handle the case where `x` is not in the dictionary
+                if lastDecompressed:
+                    new_sequence = lastDecompressed + lastDecompressed[0]
+                else:
+                    new_sequence = " "  # Fallback if lastDecompressed is empty
+
+                OutputFile.write(new_sequence)
+
+                # Add the new sequence to the dictionary
+                dict_decomp[decoded] = new_sequence
+                decoded += 1
+
+                # Update lastDecompressed to the newly created sequence
+                lastDecompressed = new_sequence
 
 
 def ReadFromFile(name):
-    Result = []
-    with open(name, "r") as file:
-        for line in file:
-            Result.append(LZWCompression(line))
-    with open("Output" , "w") as Output:
-        for line in Result:
-            for res in line :
-                Output.write(f" <{res}> ")
-            Output.write("\n")
+    s = ""
+    with open('input', 'r') as file:
+        content = file.read()
+        for char in content:
+            s += char
+    LZWCompression(s)
+
+
+
+def fillDictionary():
+    global dict_LZW
+    dict_LZW[0] = ""
+    for i in range(1, 128):
+        dict_LZW[i] = str(chr(i))
+
+def filldeCompression():
+    global dict_decomp
+    dict_decomp[0] = ""
+    for i in range(1, 128):
+        dict_decomp[i] = str(chr(i))
 
 
 # Main execution
 name = input("Enter File Name: ")
 fillDictionary()
+filldeCompression()
 ReadFromFile(name)
+LZWDecompression(result)
